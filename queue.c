@@ -31,11 +31,9 @@ void q_free(struct list_head *head)
     struct list_head *cur, *temp;
 
     list_for_each_safe (cur, temp, head) {
-        element_t *entry;
-        entry = list_entry(cur, element_t, list);
-        free(entry->value);
+        element_t *entry = list_entry(cur, element_t, list);
         list_del(cur);
-        free(entry);
+        q_release_element(entry);
     }
     free(head);
 }
