@@ -27,6 +27,17 @@ void q_free(struct list_head *head)
 {
     if (!head)
         return;
+
+    struct list_head *cur, *temp;
+
+    list_for_each_safe (cur, temp, head) {
+        element_t *entry;
+        entry = list_entry(cur, element_t, list);
+        free(entry->value);
+        list_del(cur);
+        free(entry);
+    }
+    free(head);
 }
 
 /* Insert an element at head of queue */
