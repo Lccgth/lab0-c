@@ -15,7 +15,7 @@
 struct list_head *q_new()
 {
     struct list_head *head = malloc(sizeof(struct list_head));
-    if (head == NULL)
+    if (!head)
         return NULL;
 
     INIT_LIST_HEAD(head);
@@ -23,15 +23,30 @@ struct list_head *q_new()
 }
 
 /* Free all storage used by queue */
-void q_free(struct list_head *l)
+void q_free(struct list_head *head)
 {
-    if (l == NULL)
+    if (!head)
         return;
 }
 
 /* Insert an element at head of queue */
 bool q_insert_head(struct list_head *head, char *s)
 {
+    if (!head || !s)
+        return false;
+
+    element_t *element = malloc(sizeof(element_t));
+    if (!element)
+        return false;
+
+    element->value = strdup(s);
+    if (!element->value) {
+        free(element);
+        return false;
+    }
+
+    list_add(&element->list, head);
+
     return true;
 }
 
