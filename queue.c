@@ -5,6 +5,8 @@
 #include "list.h"
 #include "queue.h"
 
+#define MAX_STRING_LENGTH 256
+
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
  * but some of them cannot occur. You can suppress them by adding the
  * following line.
@@ -223,8 +225,32 @@ void q_sort(struct list_head *head, bool descend) {}
  * the right side of it */
 int q_ascend(struct list_head *head)
 {
-    // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
+    if (!head || list_empty(head))
+        return 0;
+
+    int size = 0;
+    struct list_head *cur = head->prev;
+    char min_value[MAX_STRING_LENGTH] = {};
+    strncpy(min_value, list_entry(head->prev, element_t, list)->value,
+            MAX_STRING_LENGTH - 1);
+    min_value[MAX_STRING_LENGTH - 1] = '\0';
+
+    while (cur != head) {
+        element_t *entry = list_entry(cur, element_t, list);
+        struct list_head *prev = cur->prev;
+
+        if (strcmp(entry->value, min_value) > 0) {
+            list_del(cur);
+            q_release_element(entry);
+        } else {
+            size++;
+            strncpy(min_value, entry->value, MAX_STRING_LENGTH - 1);
+            min_value[MAX_STRING_LENGTH - 1] = '\0';
+        }
+        cur = prev;
+    }
+
+    return size;
 }
 
 /* Remove every node which has a node with a strictly greater value anywhere to
