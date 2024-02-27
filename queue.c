@@ -240,8 +240,7 @@ int q_ascend(struct list_head *head)
         struct list_head *prev = cur->prev;
 
         if (strcmp(entry->value, min_value) > 0) {
-            list_del(cur);
-            q_release_element(entry);
+            list_del_init(cur);
         } else {
             size++;
             strncpy(min_value, entry->value, MAX_STRING_LENGTH - 1);
@@ -272,8 +271,7 @@ int q_descend(struct list_head *head)
         struct list_head *prev = cur->prev;
 
         if (strcmp(entry->value, max_value) < 0) {
-            list_del(cur);
-            q_release_element(entry);
+            list_del_init(cur);
         } else {
             size++;
             strncpy(max_value, entry->value, MAX_STRING_LENGTH - 1);
