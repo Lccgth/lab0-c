@@ -50,12 +50,14 @@ bool q_insert_head(struct list_head *head, char *s)
     if (!element)
         return false;
 
-    element->value = strdup(s);
+    int len = strlen(s);
+    element->value = malloc((len + 1) * sizeof(char));
     if (!element->value) {
         free(element);
         return false;
     }
 
+    strncpy(element->value, s, len + 1);
     list_add(&element->list, head);
 
     return true;
@@ -71,12 +73,14 @@ bool q_insert_tail(struct list_head *head, char *s)
     if (!element)
         return false;
 
-    element->value = strdup(s);
+    int len = strlen(s);
+    element->value = malloc((len + 1) * sizeof(char));
     if (!element->value) {
         free(element);
         return false;
     }
 
+    strncpy(element->value, s, len + 1);
     list_add_tail(&element->list, head);
 
     return true;
@@ -151,54 +155,25 @@ bool q_delete_mid(struct list_head *head)
 /* Delete all nodes that have duplicate string */
 bool q_delete_dup(struct list_head *head)
 {
-    // if (!head || list_empty(head))
-    //     return false;
+    if (!head || list_empty(head))
+        return false;
 
-    // struct list_head *node, *safe;
-    // bool dup = false;
+    struct list_head *node, *safe;
+    bool dup = false;
 
-    // list_for_each_safe (node, safe, head) {
-    //     element_t *node_entry = list_entry(node, element_t, list);
-    //     element_t *safe_entry = list_entry(safe, element_t, list);
+    list_for_each_safe (node, safe, head) {
+        element_t *node_entry = list_entry(node, element_t, list);
+        element_t *safe_entry = list_entry(safe, element_t, list);
 
-    //     if (safe != head && !strcmp(node_entry->value, safe_entry->value)) {
-    //         dup = true;
-    //         list_del(node);
-    //         q_release_element(node_entry);
-    //     } else if (dup) {
-    //         dup = false;
-    //         list_del(node);
-    //         q_release_element(node_entry);
-    //     }
-    // }
-
-    // return true;
-    if (!head || list_empty(head)) {
-        return false;  // Empty queue, nothing to do
-    }
-
-    struct list_head *current = head->next;
-    bool found = false;
-    while (current != head && current->next != head) {
-        element_t *current_entry = list_entry(current, element_t, list);
-        element_t *next_entry = list_entry(current->next, element_t, list);
-
-        if (strcmp(current_entry->value, next_entry->value) == 0) {
-            list_del(current->next);
-            q_release_element(next_entry);
-            found = true;
-        } else {
-            current = current->next;
-            if (found) {
-                list_del(current->prev);
-                q_release_element(current_entry);
-                found = false;
-            }
+        if (safe != head && !strcmp(node_entry->value, safe_entry->value)) {
+            dup = true;
+            list_del(node);
+            q_release_element(node_entry);
+        } else if (dup) {
+            dup = false;
+            list_del(node);
+            q_release_element(node_entry);
         }
-    }
-    if (found) {
-        list_del(current);
-        q_release_element(list_entry(current, element_t, list));
     }
 
     return true;
@@ -224,14 +199,10 @@ void q_reverse(struct list_head *head)
     if (!head || list_empty(head))
         return;
 
-    struct list_head *cur = head, *temp;
+    struct list_head *cur, *safe;
 
-    do {
-        temp = cur->next;
-        cur->next = cur->prev;
-        cur->prev = temp;
-        cur = temp;
-    } while (cur != head);
+    list_for_each_safe (cur, safe, head)
+        list_move(cur, head);
 }
 
 /* Reverse the nodes of the list k at a time */
@@ -291,7 +262,7 @@ void merge(struct list_head *head,
 /* Sort elements of queue in ascending/descending order */
 void q_sort(struct list_head *head, bool descend)
 {
-    if (!head || list_empty(head) || head->next->next == head)
+    if (!head || list_empty(head) || list_is_singular(head))
         return;
 
     struct list_head *slow = head->next, *fast = head->next->next;
