@@ -151,25 +151,54 @@ bool q_delete_mid(struct list_head *head)
 /* Delete all nodes that have duplicate string */
 bool q_delete_dup(struct list_head *head)
 {
-    if (!head || list_empty(head))
-        return false;
+    // if (!head || list_empty(head))
+    //     return false;
 
-    struct list_head *node, *safe;
-    bool dup = false;
+    // struct list_head *node, *safe;
+    // bool dup = false;
 
-    list_for_each_safe (node, safe, head) {
-        element_t *node_entry = list_entry(node, element_t, list);
-        element_t *safe_entry = list_entry(safe, element_t, list);
+    // list_for_each_safe (node, safe, head) {
+    //     element_t *node_entry = list_entry(node, element_t, list);
+    //     element_t *safe_entry = list_entry(safe, element_t, list);
 
-        if (safe != head && !strcmp(node_entry->value, safe_entry->value)) {
-            dup = true;
-            list_del(node);
-            q_release_element(node_entry);
-        } else if (dup) {
-            dup = false;
-            list_del(node);
-            q_release_element(node_entry);
+    //     if (safe != head && !strcmp(node_entry->value, safe_entry->value)) {
+    //         dup = true;
+    //         list_del(node);
+    //         q_release_element(node_entry);
+    //     } else if (dup) {
+    //         dup = false;
+    //         list_del(node);
+    //         q_release_element(node_entry);
+    //     }
+    // }
+
+    // return true;
+    if (!head || list_empty(head)) {
+        return false;  // Empty queue, nothing to do
+    }
+
+    struct list_head *current = head->next;
+    bool found = false;
+    while (current != head && current->next != head) {
+        element_t *current_entry = list_entry(current, element_t, list);
+        element_t *next_entry = list_entry(current->next, element_t, list);
+
+        if (strcmp(current_entry->value, next_entry->value) == 0) {
+            list_del(current->next);
+            q_release_element(next_entry);
+            found = true;
+        } else {
+            current = current->next;
+            if (found) {
+                list_del(current->prev);
+                q_release_element(current_entry);
+                found = false;
+            }
         }
+    }
+    if (found) {
+        list_del(current);
+        q_release_element(list_entry(current, element_t, list));
     }
 
     return true;
@@ -184,8 +213,7 @@ void q_swap(struct list_head *head)
     struct list_head *cur = head->next;
 
     while (cur != head && cur->next != head) {
-        struct list_head *temp = cur->next;
-        list_move(cur, temp);
+        list_move(cur, cur->next);
         cur = cur->next;
     }
 }
@@ -248,22 +276,19 @@ int q_ascend(struct list_head *head)
         return 0;
 
     int size = 0;
-    struct list_head *cur = head->prev;
-    char min_value[MAX_STRING_LENGTH] = {};
-    strncpy(min_value, list_entry(head->prev, element_t, list)->value,
-            MAX_STRING_LENGTH - 1);
-    min_value[MAX_STRING_LENGTH - 1] = '\0';
+    struct list_head *cur = head->prev->prev;
+    element_t *min = list_entry(head->prev, element_t, list);
 
     while (cur != head) {
         element_t *entry = list_entry(cur, element_t, list);
         struct list_head *prev = cur->prev;
 
-        if (strcmp(entry->value, min_value) > 0) {
+        if (strcmp(entry->value, min->value) >= 0) {
             list_del_init(cur);
+            q_release_element(entry);
         } else {
             size++;
-            strncpy(min_value, entry->value, MAX_STRING_LENGTH - 1);
-            min_value[MAX_STRING_LENGTH - 1] = '\0';
+            min = entry;
         }
         cur = prev;
     }
@@ -279,22 +304,19 @@ int q_descend(struct list_head *head)
         return 0;
 
     int size = 0;
-    struct list_head *cur = head->prev;
-    char max_value[MAX_STRING_LENGTH] = {};
-    strncpy(max_value, list_entry(head->prev, element_t, list)->value,
-            MAX_STRING_LENGTH - 1);
-    max_value[MAX_STRING_LENGTH - 1] = '\0';
+    struct list_head *cur = head->prev->prev;
+    element_t *max = list_entry(head->prev, element_t, list);
 
     while (cur != head) {
         element_t *entry = list_entry(cur, element_t, list);
         struct list_head *prev = cur->prev;
 
-        if (strcmp(entry->value, max_value) < 0) {
+        if (strcmp(entry->value, max->value) <= 0) {
             list_del_init(cur);
+            q_release_element(entry);
         } else {
             size++;
-            strncpy(max_value, entry->value, MAX_STRING_LENGTH - 1);
-            max_value[MAX_STRING_LENGTH - 1] = '\0';
+            max = entry;
         }
         cur = prev;
     }
