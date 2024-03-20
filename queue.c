@@ -227,7 +227,6 @@ void q_reverseK(struct list_head *head, int k)
             cur->prev = temp;
             cur = temp;
         } while (cur != head && count > 0);
-
         cur->prev->prev = prev;
         prev->next = cur->prev;
         start->next = cur;
